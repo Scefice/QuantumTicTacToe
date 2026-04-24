@@ -14,8 +14,8 @@ The Laravel side only serves pages and assets. The actual game logic runs in the
 ## Features
 
 - local two-player play on one screen
-- no database required
-- no login, accounts, API, or online multiplayer
+- online room play and tournament rooms
+- no login or accounts
 - match setup with player names
 - best-of-3 or best-of-5 match mode
 - light mode and night mode
@@ -55,6 +55,27 @@ For frontend development with live rebuilds:
 ```bash
 npm run dev
 ```
+
+## Deploy To Railway
+
+Use [`.env.railway.example`](/abs/path/c/Users/davis/Desktop/Bachelors%20Thesis/QuantumTicTacToe/QuantumTicTacToe/.env.railway.example) as the production template.
+
+Minimum production setup:
+
+```bash
+php artisan key:generate --show
+php artisan migrate --force
+```
+
+Railway notes:
+
+- attach a `Postgres` service and keep `DB_CONNECTION=pgsql`
+- set `DB_URL` to `${{Postgres.DATABASE_URL}}`
+- set a real `APP_KEY`
+- create a separate `Reverb` service that runs `php artisan reverb:start --host=0.0.0.0 --port=8080`
+- create a separate worker service that runs `php artisan queue:work --verbose --tries=3 --timeout=90`
+- set `VITE_REVERB_HOST` to your public domain
+- set `REVERB_HOST` to the internal Railway hostname for the Reverb service, for example `reverb.railway.internal`
 
 ## How the Game Works
 
