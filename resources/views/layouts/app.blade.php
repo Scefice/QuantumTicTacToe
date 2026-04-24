@@ -17,6 +17,8 @@
             <nav class="site-nav" aria-label="Primary navigation">
                 <a href="{{ route('home') }}">Home</a>
                 <a href="{{ route('game') }}">Play</a>
+                <a href="{{ route('rooms.index') }}">Online Rooms</a>
+                <a href="{{ route('tournaments.index') }}">Tournaments</a>
             </nav>
         </header>
 

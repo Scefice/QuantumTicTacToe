@@ -23,6 +23,14 @@ function createQuantumToken(move, isLinked, isActiveCollapse) {
     return token;
 }
 
+function shouldDelayClassicalReveal(cell, state, uiState) {
+    if (!uiState.collapsePlaying || state.lastEvent.type !== 'collapse' || !cell.classicalMoveId) {
+        return false;
+    }
+
+    return uiState.focusMoveIds?.includes(cell.classicalMoveId) && !uiState.settledCells?.includes(cell.index);
+}
+
 function createCellButton(cell, state, moveMap, uiState) {
     const button = document.createElement('button');
     button.type = 'button';
@@ -37,6 +45,7 @@ function createCellButton(cell, state, moveMap, uiState) {
         : playbackFocus || state.lastEvent.cells.includes(cell.index);
     const isActiveCollapseCell = uiState.activeCell === cell.index;
     const isSettledCell = uiState.settledCells?.includes(cell.index);
+    const delayClassicalReveal = shouldDelayClassicalReveal(cell, state, uiState);
 
     button.className = [
         'board-cell',
@@ -56,11 +65,19 @@ function createCellButton(cell, state, moveMap, uiState) {
     index.textContent = String(cell.index + 1);
     button.append(index);
 
-    if (isClassical) {
+    if (isClassical && !delayClassicalReveal) {
         const classicalMark = document.createElement('div');
         classicalMark.className = `board-cell__classical board-cell__classical--${cell.classicalMark.toLowerCase()}`;
         classicalMark.textContent = cell.classicalMark;
         button.append(classicalMark);
+        return button;
+    }
+
+    if (delayClassicalReveal) {
+        const pending = document.createElement('div');
+        pending.className = `board-cell__pending board-cell__pending--${cell.classicalMark.toLowerCase()}${isActiveCollapseCell ? ' is-live' : ''}`;
+        pending.textContent = isActiveCollapseCell ? cell.classicalMark : '?';
+        button.append(pending);
         return button;
     }
 
@@ -294,14 +311,30 @@ export function renderGame(root, state, uiState = {}) {
         board.append(createCellButton(cell, state, moveMap, uiState));
     });
 
-    setupBox.classList.toggle('is-hidden', state.matchStarted);
-    playerXName.textContent = getPlayerLabel(state, 'X');
-    playerOName.textContent = getPlayerLabel(state, 'O');
-    matchScore.textContent = `${state.scoreboard.X} - ${state.scoreboard.O}`;
-    nextRoundButton.disabled = !state.roundComplete || Boolean(state.matchWinner);
-    messageBox.textContent = uiState.collapsePlaying ? 'Settling...' : state.statusMessage;
-    messageBox.classList.toggle('message-box--alert', Boolean(state.alert || uiState.collapsePlaying));
-    themeToggle.textContent = uiState.nightMode ? 'Day' : 'Night';
+    if (setupBox && !setupBox.hasAttribute('data-ignore-setup')) {
+        setupBox.classList.toggle('is-hidden', state.matchStarted);
+    }
+    if (playerXName) {
+        playerXName.textContent = getPlayerLabel(state, 'X');
+    }
+    if (playerOName) {
+        playerOName.textContent = getPlayerLabel(state, 'O');
+    }
+    if (matchScore) {
+        matchScore.textContent = `${state.scoreboard.X} - ${state.scoreboard.O}`;
+    }
+    if (nextRoundButton) {
+        nextRoundButton.disabled = !state.roundComplete || Boolean(state.matchWinner);
+    }
+    if (messageBox) {
+        messageBox.textContent = uiState.collapsePlaying ? 'Settling...' : state.statusMessage;
+        messageBox.classList.toggle('message-box--alert', Boolean(state.alert || uiState.collapsePlaying));
+    }
+    if (themeToggle) {
+        themeToggle.textContent = uiState.nightMode ? 'Day' : 'Night';
+    }
 
-    renderLinkMap(linkMap, linkMapNote, state, uiState);
+    if (linkMap && linkMapNote) {
+        renderLinkMap(linkMap, linkMapNote, state, uiState);
+    }
 }

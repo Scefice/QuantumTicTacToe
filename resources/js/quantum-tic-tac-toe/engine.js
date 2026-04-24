@@ -164,26 +164,40 @@ function finalizeTurn(state) {
     state.alert = false;
 }
 
+function cloneState(state) {
+    return {
+        ...state,
+        cells: state.cells.map((cell) => ({ ...cell, quantumMoveIds: [...cell.quantumMoveIds] })),
+        moves: state.moves.map((move) => ({ ...move, cells: [...move.cells] })),
+        selectedCells: [...state.selectedCells],
+        collapseLog: state.collapseLog.map((entry) => ({ ...entry })),
+        scoreboard: { ...state.scoreboard },
+        playerNames: { ...state.playerNames },
+        lastEvent: {
+            ...state.lastEvent,
+            moveIds: [...state.lastEvent.moveIds],
+            cells: [...state.lastEvent.cells],
+            resolvedMoves: state.lastEvent.resolvedMoves.map((entry) => ({ ...entry })),
+        },
+        boardMode: getBoardMode(state),
+    };
+}
+
+function swapRoundSides(state) {
+    [state.playerNames.X, state.playerNames.O] = [state.playerNames.O, state.playerNames.X];
+    [state.scoreboard.X, state.scoreboard.O] = [state.scoreboard.O, state.scoreboard.X];
+}
+
 export function createGameEngine() {
     let state = createInitialState();
 
     function getState() {
-        return {
-            ...state,
-            cells: state.cells.map((cell) => ({ ...cell, quantumMoveIds: [...cell.quantumMoveIds] })),
-            moves: state.moves.map((move) => ({ ...move, cells: [...move.cells] })),
-            selectedCells: [...state.selectedCells],
-            collapseLog: state.collapseLog.map((entry) => ({ ...entry })),
-            scoreboard: { ...state.scoreboard },
-            playerNames: { ...state.playerNames },
-            lastEvent: {
-                ...state.lastEvent,
-                moveIds: [...state.lastEvent.moveIds],
-                cells: [...state.lastEvent.cells],
-                resolvedMoves: state.lastEvent.resolvedMoves.map((entry) => ({ ...entry })),
-            },
-            boardMode: getBoardMode(state),
-        };
+        return cloneState(state);
+    }
+
+    function hydrateState(nextState) {
+        state = cloneState(nextState);
+        return getState();
     }
 
     function startMatch(settings) {
@@ -220,6 +234,7 @@ export function createGameEngine() {
         }
 
         state.roundNumber += 1;
+        swapRoundSides(state);
         clearBoardForNextRound(state);
         state.statusMessage = startRoundMessage(state);
         return getState();
@@ -327,6 +342,7 @@ export function createGameEngine() {
 
     return {
         getState,
+        hydrateState,
         startMatch,
         resetMatch,
         resetBoard,

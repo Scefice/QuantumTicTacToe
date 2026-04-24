@@ -14,6 +14,8 @@
 
             <div class="hero__actions">
                 <a class="button button--primary" href="{{ route('game') }}">Start Game</a>
+                <a class="button button--ghost" href="{{ route('rooms.index') }}">Online Room</a>
+                <a class="button button--ghost" href="{{ route('tournaments.index') }}">Tournament Rooms</a>
                 <a class="button button--ghost" href="#how-it-works">How It Works</a>
             </div>
         </div>

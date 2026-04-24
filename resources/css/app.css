@@ -233,6 +233,17 @@ button {
     background: rgba(255, 255, 255, 0.6);
 }
 
+.button--small {
+    min-height: 2.25rem;
+    padding: 0.45rem 0.8rem;
+}
+
+.button--large {
+    min-height: 3.4rem;
+    padding: 0.95rem 1.6rem;
+    font-size: 1.05rem;
+}
+
 .simple-list {
     margin: 1rem 0 0;
     padding-left: 1.2rem;
@@ -240,10 +251,28 @@ button {
     line-height: 1.7;
 }
 
+.simple-list--boxed {
+    display: grid;
+    gap: 0.75rem;
+    padding-left: 0;
+    list-style: none;
+}
+
+.simple-list--boxed li {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--panel-strong);
+}
+
 .info-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1rem;
+}
+
+.info-grid--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .info-card h2,
@@ -266,9 +295,23 @@ button {
     gap: 1.5rem;
 }
 
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.9fr);
+    gap: 1rem;
+}
+
+.dashboard-grid--participant {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .game-panel {
     display: grid;
     gap: 1.2rem;
+}
+
+.hero--compact .hero__copy {
+    padding: 1.7rem 2rem;
 }
 
 .panel--accent {
@@ -286,6 +329,25 @@ body.theme-night .panel--accent {
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
     background: var(--panel-strong);
+}
+
+.form-panel {
+    padding: 1.5rem;
+}
+
+.admin-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.admin-form--compact {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+}
+
+.field--full {
+    grid-column: 1 / -1;
 }
 
 .setup-box__header {
@@ -321,6 +383,19 @@ body.theme-night .panel--accent {
     gap: 0.4rem;
 }
 
+.field--static {
+    min-height: 2.9rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.7);
+    align-content: center;
+}
+
+.field--static strong {
+    color: var(--ink);
+}
+
 .field span {
     color: var(--muted);
     font-size: 0.88rem;
@@ -328,7 +403,8 @@ body.theme-night .panel--accent {
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
     min-height: 2.9rem;
     padding: 0.7rem 0.9rem;
     border: 1px solid var(--line);
@@ -338,8 +414,57 @@ body.theme-night .panel--accent {
 }
 
 body.theme-night .field input,
-body.theme-night .field select {
+body.theme-night .field select,
+body.theme-night .field textarea {
     background: rgba(15, 23, 35, 0.88);
+}
+
+body.theme-night .field--static {
+    background: rgba(15, 23, 35, 0.88);
+}
+
+.meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem;
+}
+
+.meta-grid--simple {
+    gap: 0.75rem;
+}
+
+.meta-grid div {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--panel-strong);
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    color: var(--accent-strong);
+    background: var(--accent-soft);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.tournament-card {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.tournament-card__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: start;
 }
 
 .match-strip {
@@ -451,8 +576,8 @@ body.theme-night .board-cell {
 }
 
 .board-cell.is-selected {
-    background: rgba(17, 120, 100, 0.12);
-    box-shadow: inset 0 0 0 4px rgba(17, 120, 100, 0.22);
+    background: radial-gradient(circle at center, rgba(17, 120, 100, 0.24), rgba(17, 120, 100, 0.08));
+    box-shadow: inset 0 0 0 6px rgba(17, 120, 100, 0.38), 0 0 0 3px rgba(17, 120, 100, 0.18);
 }
 
 .board-cell.is-linked {
@@ -466,7 +591,8 @@ body.theme-night .board-cell {
 
 .board-cell.is-collapsing {
     background: rgba(242, 203, 99, 0.34);
-    box-shadow: inset 0 0 0 5px rgba(242, 203, 99, 0.6);
+    box-shadow: inset 0 0 0 5px rgba(242, 203, 99, 0.6), 0 0 0 4px rgba(242, 203, 99, 0.24);
+    animation: collapse-cell-pulse 0.9s ease-in-out infinite;
 }
 
 .board-cell.is-settled {
@@ -497,6 +623,31 @@ body.theme-night .board-cell {
 
 .board-cell__classical--o {
     color: var(--o);
+}
+
+.board-cell__pending {
+    display: grid;
+    place-items: center;
+    min-height: 6rem;
+    font-size: clamp(2.4rem, 7vw, 3.8rem);
+    font-weight: 800;
+    letter-spacing: -0.08em;
+    color: rgba(29, 36, 51, 0.28);
+    opacity: 0.75;
+}
+
+.board-cell__pending.is-live {
+    opacity: 1;
+    color: rgba(224, 172, 56, 0.95);
+    text-shadow: 0 0 18px rgba(242, 203, 99, 0.5);
+}
+
+.board-cell__pending--x {
+    color: rgba(20, 106, 129, 0.28);
+}
+
+.board-cell__pending--o {
+    color: rgba(186, 74, 53, 0.28);
 }
 
 .board-cell__quantum-grid {
@@ -544,6 +695,17 @@ body.theme-night .quantum-token {
     box-shadow: 0 0 0 4px rgba(247, 215, 148, 0.42);
 }
 
+@keyframes collapse-cell-pulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.03);
+    }
+}
+
 .board-cell__empty {
     display: grid;
     place-items: center;
@@ -560,6 +722,104 @@ body.theme-night .quantum-token {
     background: rgba(17, 120, 100, 0.08);
     line-height: 1.6;
     min-height: 3.8rem;
+}
+
+.participant-panel {
+    display: grid;
+    gap: 1rem;
+}
+
+.organizer-panel {
+    display: grid;
+    gap: 1.2rem;
+}
+
+.participant-message {
+    margin: 0;
+    font-size: clamp(1.35rem, 4vw, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    text-align: center;
+}
+
+.participant-actions {
+    justify-content: center;
+    margin-top: 0;
+}
+
+.organizer-actions {
+    justify-content: center;
+}
+
+.simple-stack {
+    display: grid;
+    gap: 1rem;
+}
+
+.simple-pairings {
+    display: grid;
+    gap: 0.9rem;
+    margin-top: 1rem;
+}
+
+.pairing-card {
+    display: grid;
+    gap: 0.35rem;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--panel-strong);
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+    padding: 0.8rem 0.7rem;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
+}
+
+.data-table th {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.round-card + .round-card {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+}
+
+.inline-form {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.inline-form select {
+    min-height: 2.25rem;
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.7);
+}
+
+body.theme-night .inline-form select {
+    background: rgba(15, 23, 35, 0.88);
 }
 
 .message-box--alert {
@@ -705,12 +965,15 @@ body.theme-night .quantum-token {
     .hero,
     .game-page__intro,
     .game-layout,
-    .info-grid {
+    .info-grid,
+    .dashboard-grid {
         grid-template-columns: 1fr;
     }
 
     .match-strip,
-    .setup-form {
+    .setup-form,
+    .admin-form,
+    .meta-grid {
         grid-template-columns: 1fr 1fr;
     }
 }
@@ -761,7 +1024,9 @@ body.theme-night .quantum-token {
     }
 
     .match-strip,
-    .setup-form {
+    .setup-form,
+    .admin-form,
+    .meta-grid {
         grid-template-columns: 1fr;
     }
 

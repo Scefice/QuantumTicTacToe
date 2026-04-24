@@ -1,58 +1,172 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Quantum Tic-Tac-Toe
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A local two-player educational web game built with Laravel, Blade, CSS, and vanilla JavaScript.
 
-## About Laravel
+This project is meant to show the main idea behind Quantum Tic-Tac-Toe in a way that is playable in the browser:
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- one move can begin in two squares at once
+- linked moves can form a loop
+- when a loop appears, the linked moves settle into real board positions
+- only real settled marks count for winning
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+The Laravel side only serves pages and assets. The actual game logic runs in the browser.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Features
 
-## Learning Laravel
+- local two-player play on one screen
+- no database required
+- no login, accounts, API, or online multiplayer
+- match setup with player names
+- best-of-3 or best-of-5 match mode
+- light mode and night mode
+- animated collapse sequence
+- side diagram with curved links between entangled moves
+- responsive UI for desktop and mobile
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Tech Stack
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- Laravel
+- Blade templates
+- Vite
+- vanilla JavaScript
+- plain CSS
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Run Locally
 
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+From the project root:
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
+npm run build
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Open:
 
-## Contributing
+```text
+http://127.0.0.1:8000
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+For frontend development with live rebuilds:
 
-## Code of Conduct
+```bash
+npm run dev
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## How the Game Works
 
-## Security Vulnerabilities
+Each turn, a player places one numbered move such as `X1` or `O2` into two different squares.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Those two copies are linked. They stay unresolved until the game detects that the network of links makes a loop.
+
+When a loop appears:
+
+1. the game finds the moves involved in the loop
+2. it expands that to the connected unresolved part of the board
+3. it settles those moves into single squares using a fixed deterministic rule
+4. the UI plays that collapse step by step so the player can watch it happen
+
+After that, the board continues with the new settled marks.
+
+## Winning Rule
+
+Only real settled `X` and `O` marks count for victory.
+
+If a player makes three real marks in a row, they win the round.
+
+If the round ends without a winning line, it is a draw.
+
+## Project Structure
+
+### Laravel pages and routing
+
+- `routes/web.php`
+- `app/Http/Controllers/GameController.php`
+- `resources/views/layouts/app.blade.php`
+- `resources/views/home.blade.php`
+- `resources/views/game.blade.php`
+
+### Frontend entry files
+
+- `resources/js/app.js`
+- `resources/css/app.css`
+
+### Game logic
+
+- `resources/js/quantum-tic-tac-toe/state.js`
+  - initial state, match state, board state
+- `resources/js/quantum-tic-tac-toe/engine.js`
+  - turn flow, match flow, round resets, win/draw handling
+- `resources/js/quantum-tic-tac-toe/cycle-detector.js`
+  - link graph building and loop detection
+- `resources/js/quantum-tic-tac-toe/collapse-resolver.js`
+  - deterministic collapse resolution
+- `resources/js/quantum-tic-tac-toe/renderer.js`
+  - board rendering, link map rendering, visual collapse states
+- `resources/js/quantum-tic-tac-toe/index.js`
+  - event wiring, theme toggle, collapse playback timing
+
+## Cycle Detection
+
+Cycle detection is handled in:
+
+- `resources/js/quantum-tic-tac-toe/cycle-detector.js`
+
+The code treats unresolved moves as edges between cells.
+
+When a new move is added, the game checks whether its two endpoint cells were already connected by earlier unresolved moves.
+
+If they were, the new move closes a loop.
+
+That file then gathers the full unresolved connected component affected by the loop so the collapse can be applied to the whole relevant network.
+
+## Collapse Rule
+
+Collapse resolution is handled in:
+
+- `resources/js/quantum-tic-tac-toe/collapse-resolver.js`
+
+The current rule is deterministic:
+
+- the move that closes the loop settles first
+- it chooses its lower-indexed square first
+- any conflicting linked move is then forced into its other square
+- this continues until the affected unresolved moves are all settled
+
+This rule was chosen so the behavior is consistent and easier to follow.
+
+## Visual Collapse Playback
+
+The collapse animation is handled by:
+
+- `resources/js/quantum-tic-tac-toe/index.js`
+- `resources/js/quantum-tic-tac-toe/renderer.js`
+
+When a loop settles, the UI:
+
+- highlights the linked loop in the side diagram
+- shows the settling one move at a time
+- pulses the chosen square on the main board
+- marks already settled squares as the sequence continues
+
+## How to Change the Rules Later
+
+If you want to change the gameplay, these are the main files to edit:
+
+- change turn flow or match rules in `resources/js/quantum-tic-tac-toe/engine.js`
+- change loop detection in `resources/js/quantum-tic-tac-toe/cycle-detector.js`
+- change the settle rule in `resources/js/quantum-tic-tac-toe/collapse-resolver.js`
+- change how the sequence looks in `resources/js/quantum-tic-tac-toe/renderer.js`
+
+## Notes
+
+- game state is kept in browser memory only
+- no database is used by the gameplay
+- refreshing the page resets the current in-browser state
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project uses the MIT license.
