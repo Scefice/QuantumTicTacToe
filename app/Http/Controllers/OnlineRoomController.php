@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Throwable;
 
 class OnlineRoomController extends Controller
 {
@@ -76,7 +77,7 @@ class OnlineRoomController extends Controller
             'state' => $state,
             'version' => $room->version + 1,
         ]);
-        RoomStateUpdated::dispatch($room->fresh());
+        $this->dispatchRoomStateUpdated($room->fresh());
 
         $this->storeRoomToken($request, $room, $token);
 
@@ -143,7 +144,7 @@ class OnlineRoomController extends Controller
 
         $this->tournamentService->syncMatchResultFromRoom($room->fresh());
         $freshRoom = $room->fresh();
-        RoomStateUpdated::dispatch($freshRoom);
+        $this->dispatchRoomStateUpdated($freshRoom);
         $this->broadcastTournamentIfNeeded($freshRoom);
 
         return response()->json(['state' => $freshRoom->state]);
@@ -160,7 +161,7 @@ class OnlineRoomController extends Controller
             'state' => $state,
             'version' => $room->version + 1,
         ]);
-        RoomStateUpdated::dispatch($room->fresh());
+        $this->dispatchRoomStateUpdated($room->fresh());
 
         return response()->json(['state' => $room->fresh()->state]);
     }
@@ -180,7 +181,7 @@ class OnlineRoomController extends Controller
 
         $this->tournamentService->syncMatchResultFromRoom($room->fresh());
         $freshRoom = $room->fresh();
-        RoomStateUpdated::dispatch($freshRoom);
+        $this->dispatchRoomStateUpdated($freshRoom);
         $this->broadcastTournamentIfNeeded($freshRoom);
 
         return response()->json(['state' => $freshRoom->state]);
@@ -198,7 +199,7 @@ class OnlineRoomController extends Controller
             'status' => 'active',
             'version' => $room->version + 1,
         ]);
-        RoomStateUpdated::dispatch($room->fresh());
+        $this->dispatchRoomStateUpdated($room->fresh());
 
         return response()->json(['state' => $room->fresh()->state]);
     }
@@ -238,7 +239,20 @@ class OnlineRoomController extends Controller
         $match = TournamentMatch::query()->with('tournament')->find($room->tournament_match_id);
 
         if ($match?->tournament) {
-            TournamentUpdated::dispatch($match->tournament->fresh());
+            try {
+                TournamentUpdated::dispatch($match->tournament->fresh());
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        }
+    }
+
+    private function dispatchRoomStateUpdated(GameRoom $room): void
+    {
+        try {
+            RoomStateUpdated::dispatch($room);
+        } catch (Throwable $exception) {
+            report($exception);
         }
     }
 }

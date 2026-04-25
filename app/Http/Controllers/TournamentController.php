@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Throwable;
 
 class TournamentController extends Controller
 {
@@ -89,7 +90,7 @@ class TournamentController extends Controller
         ]);
 
         $this->tournamentService->addParticipant($tournament, $data['display_name']);
-        TournamentUpdated::dispatch($tournament->fresh());
+        $this->dispatchTournamentUpdated($tournament->fresh());
 
         return back()->with('success', 'Participant added.');
     }
@@ -119,7 +120,7 @@ class TournamentController extends Controller
 
         $participant = $this->tournamentService->addParticipant($tournament, $data['display_name']);
         $this->storeParticipantAccess($request, $tournament, $participant);
-        TournamentUpdated::dispatch($tournament->fresh());
+        $this->dispatchTournamentUpdated($tournament->fresh());
         $message = $participant->wasRecentlyCreated
             ? 'You joined the tournament.'
             : 'You were already in that tournament.';
@@ -131,7 +132,7 @@ class TournamentController extends Controller
     {
         $this->ensureOrganizer($request, $tournament);
         $this->tournamentService->startTournament($tournament);
-        TournamentUpdated::dispatch($tournament->fresh());
+        $this->dispatchTournamentUpdated($tournament->fresh());
 
         return redirect()->route('tournaments.show', $tournament)->with('success', 'Tournament started. Pairings are live.');
     }
@@ -146,7 +147,7 @@ class TournamentController extends Controller
         ]);
 
         $this->tournamentService->recordResult($match, $data['result_type']);
-        TournamentUpdated::dispatch($tournament->fresh());
+        $this->dispatchTournamentUpdated($tournament->fresh());
 
         return back()->with('success', 'Match result recorded.');
     }
@@ -155,7 +156,7 @@ class TournamentController extends Controller
     {
         $this->ensureOrganizer($request, $tournament);
         $this->tournamentService->createNextRound($tournament);
-        TournamentUpdated::dispatch($tournament->fresh());
+        $this->dispatchTournamentUpdated($tournament->fresh());
 
         return back()->with('success', 'Next round generated or tournament completed.');
     }
@@ -166,7 +167,7 @@ class TournamentController extends Controller
         abort_unless($participant->tournament_id === $tournament->id, 404);
 
         $this->tournamentService->dropParticipant($participant);
-        TournamentUpdated::dispatch($tournament->fresh());
+        $this->dispatchTournamentUpdated($tournament->fresh());
 
         return back()->with('success', 'Participant marked as dropped.');
     }
@@ -184,7 +185,7 @@ class TournamentController extends Controller
         ]);
 
         $nextTournament = $this->tournamentService->createFollowUpTournament($tournament, $data);
-        TournamentUpdated::dispatch($tournament->fresh());
+        $this->dispatchTournamentUpdated($tournament->fresh());
 
         return redirect()->route('tournaments.show', $nextTournament)->with('success', 'Follow-up room created from top players.');
     }
@@ -263,5 +264,14 @@ class TournamentController extends Controller
     private function ensureOrganizer(Request $request, Tournament $tournament): void
     {
         abort_unless(($this->tournamentAccess($request, $tournament)['role'] ?? null) === 'organizer', 403);
+    }
+
+    private function dispatchTournamentUpdated(Tournament $tournament): void
+    {
+        try {
+            TournamentUpdated::dispatch($tournament);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 }
