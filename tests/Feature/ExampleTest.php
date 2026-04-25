@@ -477,6 +477,35 @@ class ExampleTest extends TestCase
         $response->assertJsonPath('state.roundComplete', false);
     }
 
+    public function test_state_endpoint_reflects_swapped_player_mark_after_next_round(): void
+    {
+        $service = app(QuantumGameStateService::class);
+        $state = $service->activateRoom($service->createWaitingState('Alice', 3), 'Bob');
+        $state['scoreboard'] = ['X' => 1, 'O' => 0];
+        $state['winner'] = 'X';
+        $state['roundComplete'] = true;
+
+        $room = GameRoom::create([
+            'code' => 'SWAPMK',
+            'player_x_name' => 'Alice',
+            'player_x_token' => 'token-x',
+            'player_o_name' => 'Bob',
+            'player_o_token' => 'token-o',
+            'match_length' => 3,
+            'status' => 'active',
+            'state' => $service->nextRound($state),
+        ]);
+
+        $response = $this
+            ->withSession(['room_tokens.'.$room->code => 'token-x'])
+            ->getJson(route('rooms.state', $room));
+
+        $response->assertOk();
+        $response->assertJsonPath('room.player_mark', 'O');
+        $response->assertJsonPath('state.playerNames.X', 'Bob');
+        $response->assertJsonPath('state.playerNames.O', 'Alice');
+    }
+
     private function createTournament(array $overrides = []): Tournament
     {
         return Tournament::create(array_merge([

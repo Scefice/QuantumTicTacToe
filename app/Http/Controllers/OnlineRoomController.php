@@ -86,9 +86,10 @@ class OnlineRoomController extends Controller
 
     public function show(Request $request, GameRoom $room): View
     {
+        $playerName = $this->resolvePlayerName($request, $room);
         $playerMark = $this->resolvePlayerMark($request, $room);
 
-        abort_if($playerMark === null, 403);
+        abort_if($playerMark === null || $playerName === null, 403);
 
         $tournamentReturnUrl = null;
 
@@ -103,6 +104,7 @@ class OnlineRoomController extends Controller
             'room' => $room,
             'state' => $room->state,
             'playerMark' => $playerMark,
+            'playerName' => $playerName,
             'tournamentReturnUrl' => $tournamentReturnUrl,
         ]);
     }
@@ -147,7 +149,10 @@ class OnlineRoomController extends Controller
         $this->dispatchRoomStateUpdated($freshRoom);
         $this->broadcastTournamentIfNeeded($freshRoom);
 
-        return response()->json(['state' => $freshRoom->state]);
+        return response()->json([
+            'state' => $freshRoom->state,
+            'version' => $freshRoom->version,
+        ]);
     }
 
     public function resetBoard(Request $request, GameRoom $room): JsonResponse
@@ -163,7 +168,12 @@ class OnlineRoomController extends Controller
         ]);
         $this->dispatchRoomStateUpdated($room->fresh());
 
-        return response()->json(['state' => $room->fresh()->state]);
+        $freshRoom = $room->fresh();
+
+        return response()->json([
+            'state' => $freshRoom->state,
+            'version' => $freshRoom->version,
+        ]);
     }
 
     public function nextRound(Request $request, GameRoom $room): JsonResponse
@@ -184,7 +194,10 @@ class OnlineRoomController extends Controller
         $this->dispatchRoomStateUpdated($freshRoom);
         $this->broadcastTournamentIfNeeded($freshRoom);
 
-        return response()->json(['state' => $freshRoom->state]);
+        return response()->json([
+            'state' => $freshRoom->state,
+            'version' => $freshRoom->version,
+        ]);
     }
 
     public function resetMatch(Request $request, GameRoom $room): JsonResponse
@@ -201,7 +214,12 @@ class OnlineRoomController extends Controller
         ]);
         $this->dispatchRoomStateUpdated($room->fresh());
 
-        return response()->json(['state' => $room->fresh()->state]);
+        $freshRoom = $room->fresh();
+
+        return response()->json([
+            'state' => $freshRoom->state,
+            'version' => $freshRoom->version,
+        ]);
     }
 
     private function roomSessionKey(GameRoom $room): string
@@ -221,11 +239,26 @@ class OnlineRoomController extends Controller
 
     private function resolvePlayerMark(Request $request, GameRoom $room): ?string
     {
+        $playerName = $this->resolvePlayerName($request, $room);
+
+        if ($playerName === null) {
+            return null;
+        }
+
+        return match ($playerName) {
+            $room->state['playerNames']['X'] ?? null => 'X',
+            $room->state['playerNames']['O'] ?? null => 'O',
+            default => null,
+        };
+    }
+
+    private function resolvePlayerName(Request $request, GameRoom $room): ?string
+    {
         $token = $this->getRoomToken($request, $room);
 
         return match ($token) {
-            $room->player_x_token => 'X',
-            $room->player_o_token => 'O',
+            $room->player_x_token => $room->player_x_name,
+            $room->player_o_token => $room->player_o_name,
             default => null,
         };
     }

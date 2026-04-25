@@ -11,6 +11,7 @@
         @endif
         data-room-code="{{ $room->code }}"
         data-player-mark="{{ $playerMark }}"
+        data-player-name="{{ $playerName }}"
         data-room-state-url="{{ route('rooms.state', $room) }}"
         data-room-pick-url="{{ route('rooms.pick', $room) }}"
         data-room-next-round-url="{{ route('rooms.next-round', $room) }}"

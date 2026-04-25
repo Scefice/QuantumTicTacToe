@@ -15,13 +15,15 @@ export function mountOnlineRoom() {
 
     const rulesPanel = root.querySelector('[data-rules-panel]');
     const engine = createGameEngine();
-    const playerMark = root.dataset.playerMark;
+    const playerName = root.dataset.playerName;
     let rulesOpen = false;
     let nightMode = isNightMode();
     let playbackTimers = [];
     let lastPlaybackKey = '';
     let currentState = null;
     let requestChain = Promise.resolve();
+    let pendingRequests = 0;
+    let currentVersion = -1;
     let playback = {
         collapsePlaying: false,
         activeMoveId: null,
@@ -83,6 +85,22 @@ export function mountOnlineRoom() {
         renderGame(root, currentState, { nightMode, ...playback });
     }
 
+    function getPlayerMarkForState(state) {
+        if (!state || !playerName) {
+            return null;
+        }
+
+        if (state.playerNames?.X === playerName) {
+            return 'X';
+        }
+
+        if (state.playerNames?.O === playerName) {
+            return 'O';
+        }
+
+        return null;
+    }
+
     function playCollapseSequence(state) {
         clearPlaybackTimers();
         const resolvedMoves = state.lastEvent.resolvedMoves ?? [];
@@ -121,7 +139,15 @@ export function mountOnlineRoom() {
         }, (resolvedMoves.length + 1) * 800));
     }
 
-    function applyState(state, { authoritative = true } = {}) {
+    function applyState(state, { authoritative = true, version = null } = {}) {
+        if (authoritative && version !== null && version < currentVersion) {
+            return;
+        }
+
+        if (authoritative && version !== null) {
+            currentVersion = version;
+        }
+
         const previousRoundNumber = currentState?.roundNumber;
         const previousMatchWinner = currentState?.matchWinner;
         currentState = engine.hydrateState(state);
@@ -167,8 +193,12 @@ export function mountOnlineRoom() {
     }
 
     function fetchState() {
+        if (pendingRequests > 0) {
+            return Promise.resolve();
+        }
+
         return window.axios.get(urls.state).then((response) => {
-            applyState(response.data.state);
+            applyState(response.data.state, { version: response.data.room?.version ?? null });
         });
     }
 
@@ -188,19 +218,27 @@ export function mountOnlineRoom() {
             .catch(() => {
                 return undefined;
             })
-            .then(() => action()
+            .then(() => {
+                pendingRequests++;
+
+                return action()
                 .then((data) => {
-                    applyState(data.state);
+                    applyState(data.state, { version: data.version ?? null });
                 })
                 .catch(() => handleRequestFailure())
-            );
+                .finally(() => {
+                    pendingRequests = Math.max(0, pendingRequests - 1);
+                });
+            });
 
         return requestChain;
     }
 
     function applyOptimisticPick(cellIndex) {
-        if (!currentState || currentState.currentPlayer !== playerMark || currentState.roundComplete || !currentState.matchStarted || playback.collapsePlaying) {
-            if (currentState && currentState.currentPlayer !== playerMark && currentState.matchStarted && !currentState.roundComplete) {
+        const activePlayerMark = getPlayerMarkForState(currentState);
+
+        if (!currentState || currentState.currentPlayer !== activePlayerMark || currentState.roundComplete || !currentState.matchStarted || playback.collapsePlaying) {
+            if (currentState && currentState.currentPlayer !== activePlayerMark && currentState.matchStarted && !currentState.roundComplete) {
                 applyState({
                     ...currentState,
                     alert: true,
@@ -308,7 +346,7 @@ export function mountOnlineRoom() {
     if (window.Echo) {
         roomChannel = window.Echo.channel(`room.${root.dataset.roomCode}`);
         roomChannel.listen('.room.state.updated', (payload) => {
-            applyState(payload.state);
+            applyState(payload.state, { version: payload.room?.version ?? null });
         });
     }
 
@@ -320,5 +358,5 @@ export function mountOnlineRoom() {
     void fetchState();
     window.setInterval(() => {
         void fetchState();
-    }, 15000);
+    }, 2000);
 }
