@@ -137,6 +137,8 @@ export function mountOnlineRoom() {
             };
             refresh();
         }, (resolvedMoves.length + 1) * 800));
+
+        return (resolvedMoves.length + 1) * 800;
     }
 
     function applyState(state, { authoritative = true, version = null } = {}) {
@@ -152,11 +154,11 @@ export function mountOnlineRoom() {
         const previousMatchWinner = currentState?.matchWinner;
         currentState = engine.hydrateState(state);
         const playbackKey = getPlaybackKey(state);
+        let collapseDuration = 0;
 
         if (playbackKey && playbackKey !== lastPlaybackKey) {
             lastPlaybackKey = playbackKey;
-            playCollapseSequence(state);
-            return;
+            collapseDuration = playCollapseSequence(state);
         }
 
         if (!playbackKey) {
@@ -179,14 +181,14 @@ export function mountOnlineRoom() {
 
             redirectTimer = window.setTimeout(() => {
                 window.location.assign(root.dataset.tournamentReturnUrl);
-            }, 1200);
+            }, Math.max(collapseDuration + 400, 1200));
         }
 
         if (authoritative && root.dataset.tournamentRoom && state.roundComplete && !state.matchWinner && !nextRoundTimer) {
             nextRoundTimer = window.setTimeout(() => {
                 nextRoundTimer = null;
                 void enqueueRequest(() => postJson(urls.nextRound, {}), () => engine.nextRound());
-            }, 1400);
+            }, Math.max(collapseDuration + 600, 1400));
         }
 
         refresh();
