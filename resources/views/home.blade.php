@@ -3,57 +3,27 @@
 @section('title', 'Quantum Tic-Tac-Toe Home')
 
 @section('content')
-    <section class="hero">
+    <section class="hero hero--simple">
         <div class="hero__copy">
-            <p class="eyebrow">Local two-player classroom game</p>
-            <h1>Play a strange version of tic-tac-toe where one move can start in two places.</h1>
-            <p class="hero__lead">
-                Each turn, a player puts the same move into two squares at the same time. Later, some of those
-                floating moves snap into one real square, and only the real X and O marks can win.
-            </p>
+            <p class="eyebrow">Classroom game</p>
+            <h1>Quantum Tic-Tac-Toe</h1>
+            <p class="hero__lead">Pick two squares each turn. Loops make marks settle. Real marks win.</p>
 
             <div class="hero__actions">
-                <a class="button button--primary" href="{{ route('game') }}">Start Game</a>
+                <a class="button button--primary" href="{{ route('game') }}">Play Here</a>
                 <a class="button button--ghost" href="{{ route('rooms.index') }}">Online Room</a>
-                <a class="button button--ghost" href="{{ route('tournaments.index') }}">Tournament Rooms</a>
-                <a class="button button--ghost" href="#how-it-works">How It Works</a>
+                <a class="button button--ghost" href="{{ route('tournaments.index') }}">Tournaments</a>
             </div>
         </div>
 
         <aside class="hero__card">
-            <h2>What students should notice</h2>
-            <ul class="simple-list">
-                <li>Each move is labeled by player and move number, such as X1 or O2.</li>
-                <li>One move can sit in two squares for a while.</li>
-                <li>If the links make a loop, some marks must settle down.</li>
-                <li>Settled marks become normal X and O marks.</li>
-                <li>Only normal settled marks count for a win.</li>
+            <h2>Quick Start</h2>
+            <ul class="simple-list simple-list--tight">
+                <li>Two players</li>
+                <li>Pick two squares</li>
+                <li>Loops settle</li>
+                <li>Make three real marks</li>
             </ul>
         </aside>
-    </section>
-
-    <section id="how-it-works" class="info-grid">
-        <article class="info-card">
-            <h2>One Move, Two Squares</h2>
-            <p>
-                A player clicks two squares. That single move shows up in both of them until the board forces it to
-                choose one.
-            </p>
-        </article>
-
-        <article class="info-card">
-            <h2>Loop</h2>
-            <p>
-                If the links between moves make a loop, the board can no longer keep everything floating.
-            </p>
-        </article>
-
-        <article class="info-card">
-            <h2>Settle</h2>
-            <p>
-                The linked moves settle into single squares and become regular X and O marks. Then the game keeps
-                going.
-            </p>
-        </article>
     </section>
 @endsection

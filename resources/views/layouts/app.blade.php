@@ -14,12 +14,16 @@
                 <span>Quantum Tic-Tac-Toe</span>
             </a>
 
-            <nav class="site-nav" aria-label="Primary navigation">
-                <a href="{{ route('home') }}">Home</a>
-                <a href="{{ route('game') }}">Play</a>
-                <a href="{{ route('rooms.index') }}">Online Rooms</a>
-                <a href="{{ route('tournaments.index') }}">Tournaments</a>
-            </nav>
+            <div class="site-header__actions">
+                <nav class="site-nav" aria-label="Primary navigation">
+                    <a href="{{ route('home') }}">Home</a>
+                    <a href="{{ route('game') }}">Play</a>
+                    <a href="{{ route('rooms.index') }}">Online Rooms</a>
+                    <a href="{{ route('tournaments.index') }}">Tournaments</a>
+                </nav>
+
+                <button type="button" class="button button--ghost button--small" data-global-theme-toggle>Night</button>
+            </div>
         </header>
 
         <main class="page-content">

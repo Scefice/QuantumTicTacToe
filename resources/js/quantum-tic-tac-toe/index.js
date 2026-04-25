@@ -1,5 +1,6 @@
 import { createGameEngine } from './engine';
 import { renderGame } from './renderer';
+import { isNightMode, onThemeChange, toggleTheme } from '../theme';
 
 export function mountQuantumGame() {
     const root = document.querySelector('[data-quantum-game]');
@@ -12,7 +13,7 @@ export function mountQuantumGame() {
     const rulesPanel = root.querySelector('[data-rules-panel]');
     const setupForm = root.querySelector('[data-setup-form]');
     let rulesOpen = false;
-    let nightMode = false;
+    let nightMode = isNightMode();
     let playbackTimers = [];
     let lastPlaybackKey = '';
     let playback = {
@@ -98,7 +99,6 @@ export function mountQuantumGame() {
 
     function refresh() {
         const state = engine.getState();
-        document.body.classList.toggle('theme-night', nightMode);
 
         const playbackKey = getPlaybackKey(state);
 
@@ -196,7 +196,7 @@ export function mountQuantumGame() {
         }
 
         if (event.target.closest('[data-theme-toggle]')) {
-            nightMode = !nightMode;
+            nightMode = toggleTheme();
             refresh();
         }
     });
@@ -220,6 +220,11 @@ export function mountQuantumGame() {
         }
 
         engine.toggleHover(null);
+        refresh();
+    });
+
+    onThemeChange((nextNightMode) => {
+        nightMode = nextNightMode;
         refresh();
     });
 

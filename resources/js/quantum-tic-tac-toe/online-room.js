@@ -1,5 +1,6 @@
 import { createGameEngine } from './engine';
 import { renderGame } from './renderer';
+import { isNightMode, onThemeChange, toggleTheme } from '../theme';
 
 function postJson(url, body) {
     return window.axios.post(url, body).then((response) => response.data);
@@ -16,7 +17,7 @@ export function mountOnlineRoom() {
     const engine = createGameEngine();
     const playerMark = root.dataset.playerMark;
     let rulesOpen = false;
-    let nightMode = false;
+    let nightMode = isNightMode();
     let playbackTimers = [];
     let lastPlaybackKey = '';
     let currentState = null;
@@ -79,7 +80,6 @@ export function mountOnlineRoom() {
             return;
         }
 
-        document.body.classList.toggle('theme-night', nightMode);
         renderGame(root, currentState, { nightMode, ...playback });
     }
 
@@ -278,7 +278,7 @@ export function mountOnlineRoom() {
         }
 
         if (event.target.closest('[data-theme-toggle]')) {
-            nightMode = !nightMode;
+            nightMode = toggleTheme();
             refresh();
         }
     });
@@ -311,6 +311,11 @@ export function mountOnlineRoom() {
             applyState(payload.state);
         });
     }
+
+    onThemeChange((nextNightMode) => {
+        nightMode = nextNightMode;
+        refresh();
+    });
 
     void fetchState();
     window.setInterval(() => {
