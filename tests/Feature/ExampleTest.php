@@ -86,6 +86,36 @@ class ExampleTest extends TestCase
         $response->assertSee('Create Or Join');
     }
 
+    public function test_joining_room_assigns_second_player_token(): void
+    {
+        $createResponse = $this->post(route('rooms.create'), [
+            'player_x_name' => 'Alice',
+            'match_length' => 3,
+        ]);
+
+        /** @var GameRoom $room */
+        $room = GameRoom::query()->firstOrFail();
+
+        $createResponse->assertRedirect(route('rooms.show', $room));
+        $this->assertSame($room->player_x_token, session('room_tokens.'.$room->code));
+
+        $joinResponse = $this->post(route('rooms.join'), [
+            'code' => $room->code,
+            'player_o_name' => 'Bob',
+        ]);
+
+        $room->refresh();
+
+        $joinResponse->assertRedirect(route('rooms.show', $room));
+        $this->assertSame('Bob', $room->player_o_name);
+        $this->assertSame($room->player_o_token, session('room_tokens.'.$room->code));
+
+        $showResponse = $this->get(route('rooms.show', $room));
+
+        $showResponse->assertOk();
+        $showResponse->assertSee('data-player-mark="O"', false);
+    }
+
     public function test_next_round_swaps_symbols_and_starting_player(): void
     {
         $service = app(QuantumGameStateService::class);

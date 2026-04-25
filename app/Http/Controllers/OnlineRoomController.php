@@ -61,7 +61,7 @@ class OnlineRoomController extends Controller
         $room = GameRoom::query()->where('code', strtoupper($data['code']))->firstOrFail();
         $existingToken = $this->getRoomToken($request, $room);
 
-        if ($existingToken === $room->player_x_token || $existingToken === $room->player_o_token) {
+        if ($existingToken === $room->player_o_token) {
             return redirect()->route('rooms.show', $room);
         }
 
