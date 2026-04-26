@@ -216,13 +216,13 @@ export function mountOnlineRoom() {
             refresh();
         }
 
+        pendingRequests++;
+
         requestChain = requestChain
             .catch(() => {
                 return undefined;
             })
             .then(() => {
-                pendingRequests++;
-
                 return action()
                 .then((data) => {
                     applyState(data.state, { version: data.version ?? null });

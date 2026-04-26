@@ -8,6 +8,7 @@ use App\Models\TournamentMatch;
 use App\Models\TournamentParticipant;
 use App\Models\TournamentRound;
 use App\Services\QuantumGameStateService;
+use App\Services\TournamentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -504,6 +505,83 @@ class ExampleTest extends TestCase
         $response->assertJsonPath('room.player_mark', 'O');
         $response->assertJsonPath('state.playerNames.X', 'Bob');
         $response->assertJsonPath('state.playerNames.O', 'Alice');
+    }
+
+    public function test_tournament_result_uses_live_player_side_after_round_swap(): void
+    {
+        $tournament = $this->createTournament([
+            'name' => 'Swap Winner Room',
+            'slug' => 'swap-winner-room',
+            'status' => 'active',
+        ]);
+
+        $round = TournamentRound::create([
+            'tournament_id' => $tournament->id,
+            'number' => 1,
+            'status' => 'active',
+        ]);
+
+        $playerOne = TournamentParticipant::create([
+            'tournament_id' => $tournament->id,
+            'display_name' => 'Alice',
+            'seed' => 1,
+            'status' => 'active',
+        ]);
+
+        $playerTwo = TournamentParticipant::create([
+            'tournament_id' => $tournament->id,
+            'display_name' => 'Bob',
+            'seed' => 2,
+            'status' => 'active',
+        ]);
+
+        $match = TournamentMatch::create([
+            'tournament_id' => $tournament->id,
+            'tournament_round_id' => $round->id,
+            'table_number' => 1,
+            'player_one_id' => $playerOne->id,
+            'player_two_id' => $playerTwo->id,
+            'result_type' => 'pending',
+            'time_limit_minutes' => 4,
+            'status' => 'pending',
+        ]);
+
+        $service = app(QuantumGameStateService::class);
+        $state = $service->activateRoom($service->createWaitingState('Alice', 3), 'Bob');
+        $state['scoreboard'] = ['X' => 1, 'O' => 0];
+        $state['winner'] = 'X';
+        $state['roundComplete'] = true;
+        $state = $service->nextRound($state);
+        $state['scoreboard'] = ['X' => 1, 'O' => 1];
+        $state['winner'] = 'X';
+        $state['roundComplete'] = true;
+        $state['matchWinner'] = 'X';
+        $state['statusMessage'] = 'Bob wins the match.';
+
+        $room = GameRoom::create([
+            'tournament_match_id' => $match->id,
+            'code' => 'SWPWIN',
+            'player_x_name' => 'Alice',
+            'player_x_token' => 'token-x',
+            'player_o_name' => 'Bob',
+            'player_o_token' => 'token-o',
+            'match_length' => 3,
+            'status' => 'completed',
+            'state' => $state,
+        ]);
+
+        app(TournamentService::class)->syncMatchResultFromRoom($room);
+
+        $match->refresh();
+        $playerOne->refresh();
+        $playerTwo->refresh();
+
+        $this->assertSame('player_two_win', $match->result_type);
+        $this->assertSame($playerTwo->id, $match->winner_participant_id);
+        $this->assertSame(0, $playerOne->wins);
+        $this->assertSame(1, $playerTwo->wins);
+        $this->assertSame(0, $playerOne->points);
+        $this->assertSame(3, $playerTwo->points);
     }
 
     private function createTournament(array $overrides = []): Tournament

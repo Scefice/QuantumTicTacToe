@@ -376,13 +376,32 @@ class TournamentService
             return;
         }
 
-        $match = TournamentMatch::query()->find($room->tournament_match_id);
+        $match = TournamentMatch::query()
+            ->with(['playerOne', 'playerTwo'])
+            ->find($room->tournament_match_id);
 
         if (!$match || $match->status === 'recorded') {
             return;
         }
 
-        $this->recordResult($match, $room->state['matchWinner'] === 'X' ? 'player_one_win' : 'player_two_win');
+        $winnerMark = $room->state['matchWinner'];
+        $winnerName = $room->state['playerNames'][$winnerMark] ?? null;
+
+        if ($winnerName === null) {
+            return;
+        }
+
+        $resultType = match ($winnerName) {
+            $match->playerOne?->display_name => 'player_one_win',
+            $match->playerTwo?->display_name => 'player_two_win',
+            default => null,
+        };
+
+        if ($resultType === null) {
+            return;
+        }
+
+        $this->recordResult($match, $resultType);
     }
 
     protected function generateJoinCode(): string
