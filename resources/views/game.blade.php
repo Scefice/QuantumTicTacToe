@@ -29,7 +29,7 @@
                         <span class="setup-badge">X / O</span>
                     </div>
 
-                    <form class="setup-form" data-setup-form>
+                    <form class="setup-form setup-form--local" data-setup-form>
                         <label class="field">
                             <span>X</span>
                             <input type="text" name="playerX" value="Player 1" maxlength="20" placeholder="Player X">

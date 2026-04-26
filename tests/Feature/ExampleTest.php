@@ -134,6 +134,29 @@ class ExampleTest extends TestCase
         $this->assertSame('X', $nextState['currentPlayer']);
     }
 
+    public function test_simultaneous_lines_after_collapse_are_a_draw(): void
+    {
+        $service = app(QuantumGameStateService::class);
+        $state = $service->activateRoom($service->createWaitingState('Alice', 3), 'Bob');
+
+        $state['cells'][0]['classicalMark'] = 'X';
+        $state['cells'][1]['classicalMark'] = 'X';
+        $state['cells'][2]['classicalMark'] = 'X';
+        $state['cells'][3]['classicalMark'] = 'O';
+        $state['cells'][4]['classicalMark'] = 'O';
+        $state['cells'][5]['classicalMark'] = 'O';
+
+        $state['selectedCells'] = [6];
+        $state = $service->selectCell($state, 'X', 7);
+
+        $this->assertTrue($state['roundComplete']);
+        $this->assertTrue($state['draw']);
+        $this->assertNull($state['winner']);
+        $this->assertNull($state['matchWinner']);
+        $this->assertSame(['X' => 0, 'O' => 0], $state['scoreboard']);
+        $this->assertSame('Draw.', $state['statusMessage']);
+    }
+
     public function test_tournament_room_includes_return_url_on_game_page(): void
     {
         $tournament = Tournament::create([

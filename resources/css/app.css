@@ -392,6 +392,19 @@ body.theme-night .panel--accent {
     align-items: end;
 }
 
+.setup-form--local {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(170px, 210px) auto;
+}
+
+.setup-form--local > * {
+    min-width: 0;
+}
+
+.setup-form--local .button {
+    width: auto;
+    min-width: 9.5rem;
+}
+
 .field {
     display: grid;
     gap: 0.4rem;
@@ -590,8 +603,17 @@ body.theme-night .board-cell {
 }
 
 .board-cell.is-selected {
-    background: radial-gradient(circle at center, rgba(17, 120, 100, 0.24), rgba(17, 120, 100, 0.08));
-    box-shadow: inset 0 0 0 6px rgba(17, 120, 100, 0.38), 0 0 0 3px rgba(17, 120, 100, 0.18);
+    background: radial-gradient(circle at center, rgba(17, 120, 100, 0.34), rgba(17, 120, 100, 0.14));
+    box-shadow: inset 0 0 0 7px rgba(17, 120, 100, 0.62), 0 0 0 4px rgba(17, 120, 100, 0.24);
+}
+
+.board-cell.is-selected::after {
+    content: "";
+    position: absolute;
+    inset: 0.35rem;
+    border: 3px solid rgba(17, 120, 100, 0.75);
+    border-radius: 16px;
+    pointer-events: none;
 }
 
 .board-cell.is-linked {
@@ -669,6 +691,14 @@ body.theme-night .board-cell {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.55rem;
     margin-top: 1.45rem;
+    position: relative;
+    z-index: 1;
+}
+
+.board-cell.is-selected .board-cell__quantum-grid {
+    padding: 0.35rem;
+    border-radius: 18px;
+    background: rgba(17, 120, 100, 0.16);
 }
 
 .quantum-token {
@@ -707,6 +737,11 @@ body.theme-night .quantum-token {
     transform: scale(1.08);
     border-color: #e0ac38;
     box-shadow: 0 0 0 4px rgba(247, 215, 148, 0.42);
+}
+
+.board-cell.is-selected .quantum-token {
+    border-color: rgba(17, 120, 100, 0.6);
+    box-shadow: 0 0 0 2px rgba(17, 120, 100, 0.18);
 }
 
 @keyframes collapse-cell-pulse {
@@ -989,6 +1024,19 @@ body.theme-night .inline-form select {
     .admin-form,
     .meta-grid {
         grid-template-columns: 1fr 1fr;
+    }
+
+    .setup-form--local {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .setup-form--local .field:last-of-type {
+        grid-column: 1 / -1;
+    }
+
+    .setup-form--local .button {
+        grid-column: 1 / -1;
+        width: 100%;
     }
 }
 

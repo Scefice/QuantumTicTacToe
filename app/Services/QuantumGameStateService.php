@@ -248,8 +248,10 @@ class QuantumGameStateService
         return $state;
     }
 
-    private function getWinner(array $state): ?string
+    private function getWinningMarks(array $state): array
     {
+        $winningMarks = [];
+
         foreach (self::WINNING_LINES as $line) {
             $firstMark = $state['cells'][$line[0]]['classicalMark'];
 
@@ -258,11 +260,11 @@ class QuantumGameStateService
             }
 
             if ($state['cells'][$line[1]]['classicalMark'] === $firstMark && $state['cells'][$line[2]]['classicalMark'] === $firstMark) {
-                return $firstMark;
+                $winningMarks[] = $firstMark;
             }
         }
 
-        return null;
+        return array_values(array_unique($winningMarks));
     }
 
     private function getBoardMode(array $state): string
@@ -328,9 +330,19 @@ class QuantumGameStateService
 
     private function updateOutcome(array &$state): void
     {
-        $winner = $this->getWinner($state);
+        $winningMarks = $this->getWinningMarks($state);
 
-        if ($winner !== null) {
+        if (count($winningMarks) > 1) {
+            $state['winner'] = null;
+            $state['draw'] = true;
+            $state['roundComplete'] = true;
+            $state['statusMessage'] = 'Draw.';
+            $state['alert'] = true;
+            return;
+        }
+
+        if (count($winningMarks) === 1) {
+            $winner = $winningMarks[0];
             $state['winner'] = $winner;
             $state['draw'] = false;
             $state['roundComplete'] = true;
