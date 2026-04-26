@@ -10,8 +10,11 @@
             data-tournament-room="true"
         @endif
         data-room-code="{{ $room->code }}"
+        data-room-token="{{ $roomToken }}"
         data-player-mark="{{ $playerMark }}"
         data-player-name="{{ $playerName }}"
+        data-player-one-name="{{ $room->player_x_name }}"
+        data-player-two-name="{{ $room->player_o_name }}"
         data-room-state-url="{{ route('rooms.state', $room) }}"
         data-room-pick-url="{{ route('rooms.pick', $room) }}"
         data-room-next-round-url="{{ route('rooms.next-round', $room) }}"
@@ -39,16 +42,22 @@
 
                 <div class="match-strip">
                     <div>
-                        <span class="status-strip__label">X</span>
-                        <strong data-player-x-name>{{ $room->player_x_name }} (X)</strong>
+                        <span class="status-strip__label">{{ $tournamentReturnUrl ? 'Player 1' : 'X' }}</span>
+                        <strong data-player-x-name>{{ $room->player_x_name }}@unless($tournamentReturnUrl) (X)@endunless</strong>
                     </div>
                     <div>
-                        <span class="status-strip__label">O</span>
-                        <strong data-player-o-name>{{ $room->player_o_name ?: 'Waiting...' }}@if($room->player_o_name) (O) @endif</strong>
+                        <span class="status-strip__label">{{ $tournamentReturnUrl ? 'Player 2' : 'O' }}</span>
+                        <strong data-player-o-name>{{ $room->player_o_name ?: 'Waiting...' }}@if($room->player_o_name && ! $tournamentReturnUrl) (O) @endif</strong>
                     </div>
                     <div>
-                        <span class="status-strip__label">Score</span>
-                        <strong data-match-score>{{ $state['scoreboard']['X'] ?? 0 }} - {{ $state['scoreboard']['O'] ?? 0 }}</strong>
+                        <span class="status-strip__label">{{ $tournamentReturnUrl ? 'Sides' : 'Score' }}</span>
+                        <strong data-match-score>
+                            @if ($tournamentReturnUrl)
+                                X: {{ $state['playerNames']['X'] ?? $room->player_x_name }} · O: {{ $state['playerNames']['O'] ?? $room->player_o_name }}
+                            @else
+                                {{ $state['scoreboard']['X'] ?? 0 }} - {{ $state['scoreboard']['O'] ?? 0 }}
+                            @endif
+                        </strong>
                     </div>
                 </div>
 

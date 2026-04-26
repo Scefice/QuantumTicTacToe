@@ -14,6 +14,22 @@ function getPlayerLabel(state, player) {
     return `${state.playerNames[player]} (${player})`;
 }
 
+function getScoreForPlayerName(state, playerName) {
+    if (!playerName) {
+        return 0;
+    }
+
+    if (state.playerNames.X === playerName) {
+        return state.scoreboard.X;
+    }
+
+    if (state.playerNames.O === playerName) {
+        return state.scoreboard.O;
+    }
+
+    return 0;
+}
+
 function createQuantumToken(move, isLinked, isActiveCollapse) {
     const token = document.createElement('span');
     token.className = `quantum-token quantum-token--${move.player.toLowerCase()}${isLinked ? ' is-linked' : ''}${isActiveCollapse ? ' is-collapsing' : ''}`;
@@ -303,6 +319,9 @@ export function renderGame(root, state, uiState = {}) {
     const themeToggle = root.querySelector('[data-theme-toggle]');
     const linkMap = root.querySelector('[data-link-map]');
     const linkMapNote = root.querySelector('[data-link-map-note]');
+    const isTournamentRoom = root.dataset.tournamentRoom === 'true';
+    const playerOneName = root.dataset.playerOneName;
+    const playerTwoName = root.dataset.playerTwoName;
 
     const moveMap = new Map(state.moves.map((move) => [move.id, move]));
 
@@ -315,13 +334,19 @@ export function renderGame(root, state, uiState = {}) {
         setupBox.classList.toggle('is-hidden', state.matchStarted);
     }
     if (playerXName) {
-        playerXName.textContent = getPlayerLabel(state, 'X');
+        playerXName.textContent = isTournamentRoom
+            ? `${playerOneName} · ${getScoreForPlayerName(state, playerOneName)}`
+            : getPlayerLabel(state, 'X');
     }
     if (playerOName) {
-        playerOName.textContent = getPlayerLabel(state, 'O');
+        playerOName.textContent = isTournamentRoom
+            ? `${playerTwoName} · ${getScoreForPlayerName(state, playerTwoName)}`
+            : getPlayerLabel(state, 'O');
     }
     if (matchScore) {
-        matchScore.textContent = `${state.scoreboard.X} - ${state.scoreboard.O}`;
+        matchScore.textContent = isTournamentRoom
+            ? `X: ${state.playerNames.X} · O: ${state.playerNames.O}`
+            : `${state.scoreboard.X} - ${state.scoreboard.O}`;
     }
     if (nextRoundButton) {
         nextRoundButton.disabled = !state.roundComplete || Boolean(state.matchWinner);

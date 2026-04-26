@@ -2,8 +2,8 @@ import { createGameEngine } from './engine';
 import { renderGame } from './renderer';
 import { isNightMode, onThemeChange, toggleTheme } from '../theme';
 
-function postJson(url, body) {
-    return window.axios.post(url, body).then((response) => response.data);
+function postJson(url, body, config = {}) {
+    return window.axios.post(url, body, config).then((response) => response.data);
 }
 
 export function mountOnlineRoom() {
@@ -16,6 +16,7 @@ export function mountOnlineRoom() {
     const rulesPanel = root.querySelector('[data-rules-panel]');
     const engine = createGameEngine();
     const playerName = root.dataset.playerName;
+    const roomToken = root.dataset.roomToken;
     let rulesOpen = false;
     let nightMode = isNightMode();
     let playbackTimers = [];
@@ -42,6 +43,16 @@ export function mountOnlineRoom() {
         resetMatch: root.dataset.roomResetMatchUrl,
     };
     let roomChannel = null;
+
+    function getRequestConfig() {
+        return roomToken
+            ? {
+                headers: {
+                    'X-Room-Token': roomToken,
+                },
+            }
+            : {};
+    }
 
     if (rulesPanel) {
         rulesPanel.classList.add('is-hidden');
@@ -199,7 +210,7 @@ export function mountOnlineRoom() {
             return Promise.resolve();
         }
 
-        return window.axios.get(urls.state).then((response) => {
+        return window.axios.get(urls.state, getRequestConfig()).then((response) => {
             applyState(response.data.state, { version: response.data.room?.version ?? null });
         });
     }
@@ -289,23 +300,23 @@ export function mountOnlineRoom() {
             const didApply = applyOptimisticPick(cellIndex);
 
             if (didApply) {
-                void enqueueRequest(() => postJson(urls.pick, { cell_index: cellIndex }));
+                void enqueueRequest(() => postJson(urls.pick, { cell_index: cellIndex }, getRequestConfig()));
             }
             return;
         }
 
         if (event.target.closest('[data-new-game]')) {
-            void runOptimisticAction(() => postJson(urls.resetMatch, {}), () => engine.resetMatch());
+            void runOptimisticAction(() => postJson(urls.resetMatch, {}, getRequestConfig()), () => engine.resetMatch());
             return;
         }
 
         if (event.target.closest('[data-reset-game]')) {
-            void runOptimisticAction(() => postJson(urls.resetBoard, {}), () => engine.resetBoard());
+            void runOptimisticAction(() => postJson(urls.resetBoard, {}, getRequestConfig()), () => engine.resetBoard());
             return;
         }
 
         if (event.target.closest('[data-next-round]')) {
-            void runOptimisticAction(() => postJson(urls.nextRound, {}), () => engine.nextRound());
+            void runOptimisticAction(() => postJson(urls.nextRound, {}, getRequestConfig()), () => engine.nextRound());
             return;
         }
 
@@ -360,5 +371,5 @@ export function mountOnlineRoom() {
     void fetchState();
     window.setInterval(() => {
         void fetchState();
-    }, 2000);
+    }, window.Echo ? 15000 : 2000);
 }

@@ -105,6 +105,7 @@ class OnlineRoomController extends Controller
             'state' => $room->state,
             'playerMark' => $playerMark,
             'playerName' => $playerName,
+            'roomToken' => $this->getRoomToken($request, $room),
             'tournamentReturnUrl' => $tournamentReturnUrl,
         ]);
     }
@@ -234,7 +235,9 @@ class OnlineRoomController extends Controller
 
     private function getRoomToken(Request $request, GameRoom $room): ?string
     {
-        return $request->session()->get($this->roomSessionKey($room));
+        return $request->header('X-Room-Token')
+            ?? $request->query('room_token')
+            ?? $request->session()->get($this->roomSessionKey($room));
     }
 
     private function resolvePlayerMark(Request $request, GameRoom $room): ?string

@@ -465,7 +465,7 @@ class ExampleTest extends TestCase
         ]);
 
         $response = $this
-            ->withSession(['room_tokens.'.$room->code => 'token-x'])
+            ->withHeader('X-Room-Token', 'token-x')
             ->postJson(route('rooms.next-round', $room));
 
         $response->assertOk();
@@ -498,13 +498,37 @@ class ExampleTest extends TestCase
         ]);
 
         $response = $this
-            ->withSession(['room_tokens.'.$room->code => 'token-x'])
+            ->withHeader('X-Room-Token', 'token-x')
             ->getJson(route('rooms.state', $room));
 
         $response->assertOk();
         $response->assertJsonPath('room.player_mark', 'O');
         $response->assertJsonPath('state.playerNames.X', 'Bob');
         $response->assertJsonPath('state.playerNames.O', 'Alice');
+    }
+
+    public function test_room_state_endpoint_accepts_room_token_header_without_session(): void
+    {
+        $service = app(QuantumGameStateService::class);
+
+        $room = GameRoom::create([
+            'code' => 'HDRTOK',
+            'player_x_name' => 'Alice',
+            'player_x_token' => 'header-token-x',
+            'player_o_name' => 'Bob',
+            'player_o_token' => 'header-token-o',
+            'match_length' => 3,
+            'status' => 'active',
+            'state' => $service->activateRoom($service->createWaitingState('Alice', 3), 'Bob'),
+        ]);
+
+        $response = $this
+            ->withHeader('X-Room-Token', 'header-token-x')
+            ->getJson(route('rooms.state', $room));
+
+        $response->assertOk();
+        $response->assertJsonPath('room.player_mark', 'X');
+        $response->assertJsonPath('state.playerNames.X', 'Alice');
     }
 
     public function test_tournament_result_uses_live_player_side_after_round_swap(): void
