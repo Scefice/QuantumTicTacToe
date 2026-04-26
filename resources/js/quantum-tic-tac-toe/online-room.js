@@ -151,7 +151,6 @@ export function mountOnlineRoom() {
         }
 
         const previousRoundNumber = currentState?.roundNumber;
-        const previousMatchWinner = currentState?.matchWinner;
         currentState = engine.hydrateState(state);
         const playbackKey = getPlaybackKey(state);
         let collapseDuration = 0;
@@ -174,11 +173,12 @@ export function mountOnlineRoom() {
             }
         }
 
-        if (authoritative && !previousMatchWinner && state.matchWinner && root.dataset.tournamentReturnUrl) {
-            if (redirectTimer) {
-                window.clearTimeout(redirectTimer);
-            }
+        if (!state.matchWinner && redirectTimer) {
+            window.clearTimeout(redirectTimer);
+            redirectTimer = null;
+        }
 
+        if (state.matchWinner && root.dataset.tournamentReturnUrl && !redirectTimer) {
             redirectTimer = window.setTimeout(() => {
                 window.location.assign(root.dataset.tournamentReturnUrl);
             }, Math.max(collapseDuration + 400, 1200));
