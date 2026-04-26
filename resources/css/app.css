@@ -155,6 +155,7 @@ button {
 .game-page__intro--compact {
     grid-template-columns: 1fr;
     gap: 0.5rem;
+    margin-bottom: 1rem;
 }
 
 .hero__copy,
@@ -393,16 +394,24 @@ body.theme-night .panel--accent {
 }
 
 .setup-form--local {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(170px, 210px) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(180px, 220px);
+    align-items: start;
 }
 
 .setup-form--local > * {
     min-width: 0;
 }
 
+.setup-form--local .field:last-of-type {
+    max-width: 220px;
+}
+
 .setup-form--local .button {
+    grid-column: 1 / -1;
+    justify-self: start;
     width: auto;
-    min-width: 9.5rem;
+    min-width: 10.5rem;
+    margin-top: 0.25rem;
 }
 
 .field {
@@ -621,6 +630,13 @@ body.theme-night .board-cell {
     box-shadow: inset 0 0 0 4px rgba(247, 215, 148, 0.4);
 }
 
+.board-cell.is-selected.is-linked {
+    background:
+        radial-gradient(circle at center, rgba(17, 120, 100, 0.38), rgba(17, 120, 100, 0.16)),
+        rgba(247, 215, 148, 0.18);
+    box-shadow: inset 0 0 0 7px rgba(17, 120, 100, 0.72), 0 0 0 4px rgba(17, 120, 100, 0.26);
+}
+
 .board-cell.is-classical {
     background: rgba(17, 120, 100, 0.09);
 }
@@ -699,6 +715,10 @@ body.theme-night .board-cell {
     padding: 0.35rem;
     border-radius: 18px;
     background: rgba(17, 120, 100, 0.16);
+}
+
+.board-cell.is-selected.is-linked .board-cell__quantum-grid {
+    background: rgba(17, 120, 100, 0.22);
 }
 
 .quantum-token {
@@ -1032,6 +1052,7 @@ body.theme-night .inline-form select {
 
     .setup-form--local .field:last-of-type {
         grid-column: 1 / -1;
+        max-width: none;
     }
 
     .setup-form--local .button {

@@ -8,10 +8,6 @@
         data-quantum-game
         data-home-url="{{ route('home') }}"
     >
-        <div class="page-toolbar">
-            <button type="button" class="button button--ghost" data-theme-toggle>Night Mode</button>
-        </div>
-
         <div class="game-page__intro game-page__intro--compact">
             <div>
                 <p class="eyebrow">QTTT</p>
